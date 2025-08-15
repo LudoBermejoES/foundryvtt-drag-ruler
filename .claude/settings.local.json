@@ -4,7 +4,8 @@
       "WebSearch",
       "WebFetch(domain:foundryvtt.com)",
       "Bash(git remote set-url:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git push:*)"
     ],
     "defaultMode": "acceptEdits"
   }

@@ -114,12 +114,14 @@ export function registerSettings() {
 	}
 
 	game.settings.register(settingsKey, "lastTerrainRulerHintTime", {
+		scope: "world",
 		config: false,
 		type: Number,
 		default: 0,
 	});
 
 	game.settings.register(settingsKey, "neverShowTerrainRulerHint", {
+		scope: "world",
 		config: false,
 		type: Boolean,
 		default: false,
