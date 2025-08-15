@@ -36,6 +36,9 @@ Hooks.once("init", () => {
 		"WRAPPER",
 	);
 
+	// Disable native v13 drag ruler functionality
+	disableNativeDragRuler();
+
 	extendRuler();
 
 	window.dragRuler = {
@@ -271,5 +274,115 @@ function applyGridlessSnapping(event) {
 				event.interactionData.destination.y = origin.y + (deltaY * targetDistance) / distance;
 			}
 		}
+	}
+}
+
+function disableNativeDragRuler() {
+	// Check if we're running on v13 or later where native drag ruler exists
+	if (!foundry.utils.isNewerVersion(game.version || "0", "12.999")) return;
+
+	// Override Token methods that control native drag ruler visibility
+	libWrapper.register(
+		"drag-ruler",
+		"Token.prototype._addDragWaypoint",
+		function(wrapped, ...args) {
+			// Prevent native waypoint addition when drag-ruler is active
+			const ruler = canvas.controls.ruler;
+			if (ruler.isDragRuler) {
+				return;
+			}
+			return wrapped(...args);
+		},
+		"MIXED"
+	);
+
+	// Disable the native ruler visibility during drag operations
+	libWrapper.register(
+		"drag-ruler",
+		"Token.prototype.showRuler",
+		function(wrapped, ...args) {
+			const ruler = canvas.controls.ruler;
+			if (ruler.isDragRuler) {
+				return false;
+			}
+			return wrapped(...args);
+		},
+		"MIXED"
+	);
+
+	// Override _getDragWaypointPosition to prevent native waypoint positioning
+	if (Token.prototype._getDragWaypointPosition) {
+		libWrapper.register(
+			"drag-ruler",
+			"Token.prototype._getDragWaypointPosition",
+			function(wrapped, ...args) {
+				const ruler = canvas.controls.ruler;
+				if (ruler.isDragRuler) {
+					return null;
+				}
+				return wrapped(...args);
+			},
+			"MIXED"
+		);
+	}
+
+	// Override measureMovementPath to prevent native measurement when drag ruler is active
+	if (Token.prototype.measureMovementPath) {
+		libWrapper.register(
+			"drag-ruler",
+			"Token.prototype.measureMovementPath",
+			function(wrapped, ...args) {
+				const ruler = canvas.controls.ruler;
+				if (ruler.isDragRuler) {
+					return [];
+				}
+				return wrapped(...args);
+			},
+			"MIXED"
+		);
+	}
+
+	// Override the Token.prototype.ruler getter to return null when drag-ruler is active
+	// This should disable most native ruler functionality
+	const originalRulerDescriptor = Object.getOwnPropertyDescriptor(Token.prototype, 'ruler');
+	if (originalRulerDescriptor) {
+		Object.defineProperty(Token.prototype, 'ruler', {
+			get: function() {
+				const controlsRuler = canvas.controls.ruler;
+				if (controlsRuler && controlsRuler.isDragRuler && controlsRuler.draggedEntity === this) {
+					return null; // Disable native ruler when drag-ruler is active
+				}
+				return originalRulerDescriptor.get ? originalRulerDescriptor.get.call(this) : undefined;
+			},
+			configurable: true,
+			enumerable: originalRulerDescriptor.enumerable
+		});
+	}
+
+	// Also override _plannedMovement to prevent native ruler data storage
+	const originalPlannedMovementDescriptor = Object.getOwnPropertyDescriptor(Token.prototype, '_plannedMovement');
+	if (originalPlannedMovementDescriptor || Token.prototype.hasOwnProperty('_plannedMovement')) {
+		Object.defineProperty(Token.prototype, '_plannedMovement', {
+			get: function() {
+				const controlsRuler = canvas.controls.ruler;
+				if (controlsRuler && controlsRuler.isDragRuler && controlsRuler.draggedEntity === this) {
+					return null; // Prevent native planned movement when drag-ruler is active
+				}
+				return originalPlannedMovementDescriptor?.get ? originalPlannedMovementDescriptor.get.call(this) : this.__plannedMovement;
+			},
+			set: function(value) {
+				const controlsRuler = canvas.controls.ruler;
+				if (controlsRuler && controlsRuler.isDragRuler && controlsRuler.draggedEntity === this) {
+					return; // Prevent setting native planned movement when drag-ruler is active
+				}
+				if (originalPlannedMovementDescriptor?.set) {
+					originalPlannedMovementDescriptor.set.call(this, value);
+				} else {
+					this.__plannedMovement = value;
+				}
+			},
+			configurable: true,
+			enumerable: originalPlannedMovementDescriptor?.enumerable || false
+		});
 	}
 }

@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch(domain:foundryvtt.com)",
+      "Bash(git remote set-url:*)",
+      "Bash(git add:*)"
+    ],
+    "defaultMode": "acceptEdits"
+  }
+}

@@ -307,7 +307,7 @@ export function getMeasurePosition() {
 
 // isGM function for use during loading when game.user isn't available yet
 export function early_isGM() {
-	const level = game.data.users.find(u => u._id == game.data.userId).role;
+	const level = game.users.find(u => u._id == game.userId).role;
 	const gmLevel = CONST.USER_ROLES.ASSISTANT;
 	return level >= gmLevel;
 }

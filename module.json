@@ -2,11 +2,11 @@
 	"id": "drag-ruler",
 	"title": "Drag Ruler",
 	"description": "When dragging a token displays a ruler showing how far you've moved that token.",
-	"version": "1.14.2",
+	"version": "1.14.4",
 	"compatibility": {
 		"minimum": "12",
-		"verified": "12",
-		"maximum": "12"
+		"verified": "13",
+		"maximum": "13"
 	},
 	"authors": [
 		{

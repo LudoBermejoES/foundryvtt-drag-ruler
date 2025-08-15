@@ -143,7 +143,7 @@ export function onMouseMove(event) {
 
 	// Hide any existing Token HUD
 	canvas.hud.token.clear();
-	delete event.data.hudState;
+	delete event.hudState;
 
 	// Draw measurement updates
 	scheduleMeasurement.call(this, destination, event);
