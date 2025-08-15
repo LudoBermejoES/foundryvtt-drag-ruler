@@ -307,9 +307,22 @@ export function getMeasurePosition() {
 
 // isGM function for use during loading when game.user isn't available yet
 export function early_isGM() {
-	const level = game.users.find(u => u._id == game.userId).role;
-	const gmLevel = CONST.USER_ROLES.ASSISTANT;
-	return level >= gmLevel;
+	// Try multiple approaches depending on what's available during initialization
+	if (game.user?.isGM !== undefined) {
+		return game.user.isGM;
+	}
+	
+	// Fallback: check if game.users is available
+	if (game.users && game.userId) {
+		const user = game.users.find(u => u._id == game.userId);
+		if (user) {
+			const gmLevel = CONST.USER_ROLES.ASSISTANT;
+			return user.role >= gmLevel;
+		}
+	}
+	
+	// Final fallback: assume false if we can't determine
+	return false;
 }
 
 export function isModuleActive(moduleName) {

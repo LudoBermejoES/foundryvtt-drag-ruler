@@ -56,10 +56,13 @@ Hooks.once("ready", () => {
 	performMigrations();
 	checkDependencies();
 	Hooks.callAll("dragRuler.ready", SpeedProvider);
-	if (CONFIG.debug.dragRuler) debugGraphics = canvas.controls.addChild(new PIXI.Container());
+	if (CONFIG.debug.dragRuler && canvas?.controls) debugGraphics = canvas.controls.addChild(new PIXI.Container());
 });
 
 Hooks.on("canvasReady", () => {
+	// Ensure canvas and controls are available
+	if (!canvas?.controls?.rulers?.children) return;
+	
 	canvas.controls.rulers.children.forEach(ruler => {
 		ruler.draggedEntity = null;
 		Object.defineProperty(ruler, "isDragRuler", {
